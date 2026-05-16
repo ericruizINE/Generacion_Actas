@@ -1,0 +1,7 @@
+pandas
+PyMuPDF
+qrcode
+Pillow
+num2words
+selenium
+webdriver-manager
