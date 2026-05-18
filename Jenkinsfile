@@ -93,8 +93,48 @@ pipeline {
 
         stage('Archive artifacts') {
             steps {
-                archiveArtifacts artifacts: 'Actas/**', fingerprint: true
-                archiveArtifacts artifacts: 'Archivos/Datos/**', fingerprint: true
+                script {
+                    def folderMap = [
+                        '1': 'Actas/Presidencia',
+                        '2': 'Actas/Presidencia_especial',
+                        '3': 'Actas/Senadurias',
+                        '4': 'Actas/Senadurias_rp',
+                        '5': 'Actas/Diputaciones',
+                        '6': 'Actas/Diputaciones_rp',
+                        '7': 'Actas/Presidencia_va',
+                        '8': 'Actas/Presidencia_ve',
+                        '9': 'Actas/Presidencia_vpp',
+                        '10': 'Actas/Senadurias_va',
+                        '11': 'Actas/Senadurias_VE',
+                        '12': 'Actas/Diputaciones_va'
+                    ]
+
+                    def votosMap = [
+                        '1':  'Archivos/Datos/Presidencia/presidencia_layout_votos.xlsx',
+                        '2':  'Archivos/Datos/Presidencia/presidenciaesp_layout_votos.xlsx',
+                        '3':  'Archivos/Datos/Senadurias/senadurias_layout_votos.xlsx',
+                        '4':  'Archivos/Datos/Senadurias/senaduriasrp_layout_votos.xlsx',
+                        '5':  'Archivos/Datos/Diputaciones/diputaciones_layout_votos.xlsx',
+                        '6':  'Archivos/Datos/Diputaciones/diputacionesrp_layout_votos.xlsx',
+                        '7':  'Archivos/Datos/Presidencia/presidenciava_layout_votos.xlsx',
+                        '8':  'Archivos/Datos/Presidencia/presidenciave_layout_votos.xlsx',
+                        '9':  'Archivos/Datos/Presidencia/presidenciavpp_layout_votos.xlsx',
+                        '10': 'Archivos/Datos/Senadurias/senaduriasva_layout_votos.xlsx',
+                        '11': 'Archivos/Datos/Senadurias/senaduriasve_layout_votos.xlsx',
+                        '12': 'Archivos/Datos/Diputaciones/diputacionesva_layout_votos.xlsx'
+                    ]
+
+                    def selectionKey = params.SCRIPT_NUMBER == 'all' ? 'all' : params.SCRIPT_NUMBER.split(' - ')[0]
+                    def foldersToArchive = selectionKey == 'all' ? folderMap.values().toList() : [folderMap[selectionKey]]
+                    def votosToArchive = selectionKey == 'all' ? votosMap.values().toList() : [votosMap[selectionKey]]
+
+                    for (folder in foldersToArchive) {
+                        archiveArtifacts artifacts: "${folder}/**", fingerprint: true, allowEmptyArchive: true
+                    }
+                    for (votos in votosToArchive) {
+                        archiveArtifacts artifacts: votos, fingerprint: true, allowEmptyArchive: true
+                    }
+                }
             }
         }
     }
