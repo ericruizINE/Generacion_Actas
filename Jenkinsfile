@@ -94,7 +94,7 @@ pipeline {
         stage('Archive artifacts') {
             steps {
                 archiveArtifacts artifacts: 'Actas/**', fingerprint: true
-                archiveArtifacts artifacts: 'Datos/**', fingerprint: true
+                archiveArtifacts artifacts: 'Archivos/Datos/**', fingerprint: true
             }
         }
     }
