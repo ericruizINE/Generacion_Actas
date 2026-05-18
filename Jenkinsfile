@@ -4,8 +4,22 @@ pipeline {
     parameters {
         choice(
             name: 'SCRIPT_NUMBER',
-            choices: ['all', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
-            description: 'Seleccione el número de script a ejecutar. Usa "all" para ejecutar todos los scripts.'
+            choices: [
+                'all',
+                '1 - Presidencia',
+                '2 - Presidencia especial',
+                '3 - Senadurias',
+                '4 - Senadurias RP',
+                '5 - Diputaciones',
+                '6 - Diputaciones RP',
+                '7 - Presidencia VA',
+                '8 - Presidencia VE',
+                '9 - Presidencia VPP',
+                '10 - Senadurias VA',
+                '11 - Senadurias VE',
+                '12 - Diputaciones VA'
+            ],
+            description: 'Seleccione el script a ejecutar. Use "all" para ejecutar todos los scripts.'
         )
     }
 
@@ -13,11 +27,6 @@ pipeline {
         VENV_DIR = '/var/jenkins_home/workspace/Generacion_Actas/venv'
         // Establece la política CSP vacía para permitir que Jenkins muestre correctamente el HTML incrustado 
         JAVA_OPTS = "-Dhudson.model.DirectoryBrowserSupport.CSP=\"sandbox allow-scripts allow-same-origin; default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval';\""
-        // Establece las variables de allure
-        APP_VERSION = '1.0.0'
-        PLATFORM = 'Fedora Linux 41 (Server Edition)'
-        BROWSER = 'Chromedriver: 128.0.6613.84'
-        ALLURE_RESULTS_DIR = 'reports/allure-results'
     }
     stages {
         stage('Clean Up and Checkout ') {
@@ -38,23 +47,7 @@ pipeline {
                 sh """
                     . ${VENV_DIR}/bin/activate > /dev/null 2>&1
                     pip install --no-cache-dir -r requirements.txt
-                    pip install --no-cache-dir allure-pytest
                 """
-            }
-        }
-        stage('Preparar ambiente') {
-            steps {
-                script {
-                    // Generar archivo environment.properties con variables de entorno
-                    def alluredir = env.ALLURE_RESULTS_DIR
-                    sh "mkdir -p ${alluredir}"
-                    sh """
-                        echo 'APP_VERSION=${env.APP_VERSION}' >> ${alluredir}/environment.properties
-                        echo 'PLATFORM=${env.PLATFORM}' >> ${alluredir}/environment.properties
-                        echo 'BROWSER=${env.BROWSER}' >> ${alluredir}/environment.properties
-                        echo 'BUILD_URL=${env.BUILD_URL}' >> ${alluredir}/environment.properties
-                    """
-                }
             }
         }
         stage('Run generation scripts') {
@@ -76,10 +69,11 @@ pipeline {
                     ]
 
                     def selectedScripts = []
-                    if (params.SCRIPT_NUMBER == 'all') {
+                    def selectionKey = params.SCRIPT_NUMBER == 'all' ? 'all' : params.SCRIPT_NUMBER.split(' - ')[0]
+                    if (selectionKey == 'all') {
                         selectedScripts = scriptMap.values().toList()
-                    } else if (scriptMap.containsKey(params.SCRIPT_NUMBER)) {
-                        selectedScripts = [scriptMap[params.SCRIPT_NUMBER]]
+                    } else if (scriptMap.containsKey(selectionKey)) {
+                        selectedScripts = [scriptMap[selectionKey]]
                     } else {
                         error "Valor de SCRIPT_NUMBER inválido: ${params.SCRIPT_NUMBER}"
                     }
@@ -107,23 +101,14 @@ pipeline {
     post {
         always {
             script {
-                // Ejecuta Allure
-                allure includeProperties: false, jdk: '', reportBuildPolicy: 'ALWAYS', results: [[path: "${env.ALLURE_RESULTS_DIR}"]]
-                
-                // Define las URLs de los reportes
-                def allureReportUrl = "${env.BUILD_URL}allure"
-
                 env.BUILD_RESULT = currentBuild.currentResult
-                // Convertir la duración a un formato legible
                 def durationMillis = currentBuild.duration
                 def durationSeconds = (durationMillis / 1000) as int
                 def minutes = (durationSeconds / 60) as int
                 def seconds = durationSeconds % 60
                 env.BUILD_DURATION = "${minutes}m ${seconds}s"
-
-                // Imprime las URLs en consola
-                echo "El reporte de Allure está disponible en: ${allureReportUrl}"
-                
+                echo "Resultado del build: ${env.BUILD_RESULT}"
+                echo "Duración del build: ${env.BUILD_DURATION}"
             }
         }
     }
