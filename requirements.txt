@@ -5,3 +5,4 @@ Pillow
 num2words
 selenium
 webdriver-manager
+openpyxl
