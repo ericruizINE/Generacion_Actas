@@ -10,7 +10,7 @@ from rellenarnum import process_excel_file
 DIPUTACIONES_LAYOUT_PATH = os.path.join('Archivos', 'Datos', 'Diputaciones', 'diputaciones_layout.xlsx')
 DIPUTACIONES_VOTOS_PATH = os.path.join('Archivos', 'Datos', 'Diputaciones', 'diputaciones_layout_votos.xlsx')
 DIPUTACIONES_PDF_FORMAT_PATH = os.path.join('Archivos', 'Formatos', '4V1.pdf')
-FONT_PATH = os.path.join('Archivos', 'Fonts', 'ARIAL.ttf')
+FONT_PATH = os.path.join('Archivos', 'Fonts', 'ARIAL.TTF')
 SELLO_PATH = os.path.join('Archivos', 'Imagenes', 'sello.png')
 DIPUTACIONES_PDF_DIR = os.path.join('Actas', 'Diputaciones', 'PDF', )
 DIPUTACIONES_JPG_DIR = os.path.join('Actas', 'Diputaciones', 'JPG', )

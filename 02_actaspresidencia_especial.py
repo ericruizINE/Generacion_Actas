@@ -10,7 +10,7 @@ from rellenarnum import process_excel_file
 PRESIDENCIA_LAYOUT_PATH = os.path.join('Archivos', 'Datos', 'Presidencia', 'presidenciaesp_layout.xlsx')
 PRESIDENCIA_VOTOS_PATH = os.path.join('Archivos', 'Datos', 'Presidencia', 'presidenciaesp_layout_votos.xlsx')
 PDF_FORMAT_PATH = os.path.join('Archivos', 'Formatos', '2E.pdf')
-FONT_PATH = os.path.join('Archivos', 'Fonts', 'ARIAL.ttf')
+FONT_PATH = os.path.join('Archivos', 'Fonts', 'ARIAL.TTF')
 SELLO_PATH = os.path.join('Archivos', 'Imagenes', 'sello.png')
 PRESIDENCIA_ESPECIAL_PDF_DIR = os.path.join('Actas', 'Presidencia_especial', 'PDF')
 PRESIDENCIA_ESPECIAL_JPG_DIR = os.path.join('Actas', 'Presidencia_especial', 'JPG')

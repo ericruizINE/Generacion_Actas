@@ -10,7 +10,7 @@ from rellenarnum import process_excel_file
 SENADURIAS_LAYOUT_PATH = os.path.join('Archivos', 'Datos', 'Senadurias', 'senaduriasrp_layout.xlsx')
 SENADURIAS_VOTOS_PATH = os.path.join('Archivos', 'Datos', 'Senadurias', 'senaduriasrp_layout_votos.xlsx')
 SENADURIAS_PDF_FORMAT_PATH = os.path.join('Archivos', 'Formatos', '3ERP.pdf')
-FONT_PATH = os.path.join('Archivos', 'Fonts', 'ARIAL.ttf')
+FONT_PATH = os.path.join('Archivos', 'Fonts', 'ARIAL.TTF')
 SELLO_PATH = os.path.join('Archivos', 'Imagenes', 'sello.png')
 SENADURIAS_PDF_DIR = os.path.join('Actas', 'Senadurias_rp','PDF')
 SENADURIAS_JPG_DIR = os.path.join('Actas', 'Senadurias_rp','JPG')
