@@ -21,10 +21,16 @@ pipeline {
             ],
             description: 'Seleccione el script a ejecutar. Use "all" para ejecutar todos los scripts.'
         )
+        string(
+            name: 'EMAIL_RECIPIENTS',
+            defaultValue: 'notificaciones@ine.gob.mx',
+            description: 'Direcciones de correo que recibirán el resultado y artefactos del pipeline'
+        )
     }
 
     environment {
         VENV_DIR = '/var/jenkins_home/workspace/Generacion_Actas/venv'
+        ARTIFACT_URLS = ''
         // Establece la política CSP vacía para permitir que Jenkins muestre correctamente el HTML incrustado 
         JAVA_OPTS = "-Dhudson.model.DirectoryBrowserSupport.CSP=\"sandbox allow-scripts allow-same-origin; default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval';\""
     }
@@ -128,12 +134,17 @@ pipeline {
                     def foldersToArchive = selectionKey == 'all' ? folderMap.values().toList() : [folderMap[selectionKey]]
                     def votosToArchive = selectionKey == 'all' ? votosMap.values().toList() : [votosMap[selectionKey]]
 
+                    def artifactUrls = []
                     for (folder in foldersToArchive) {
                         archiveArtifacts artifacts: "${folder}/**", fingerprint: true, allowEmptyArchive: true
+                        artifactUrls << "${env.BUILD_URL}artifact/${folder}/"
                     }
                     for (votos in votosToArchive) {
                         archiveArtifacts artifacts: votos, fingerprint: true, allowEmptyArchive: true
+                        artifactUrls << "${env.BUILD_URL}artifact/${votos}"
                     }
+
+                    env.ARTIFACT_URLS = artifactUrls.join(',')
                 }
             }
         }
@@ -150,6 +161,21 @@ pipeline {
                 env.BUILD_DURATION = "${minutes}m ${seconds}s"
                 echo "Resultado del build: ${env.BUILD_RESULT}"
                 echo "Duración del build: ${env.BUILD_DURATION}"
+
+                emailext(
+                    subject: "${currentBuild.fullDisplayName} - ${env.BUILD_RESULT}",
+                    body: "<p><strong>Pipeline:</strong> ${currentBuild.fullDisplayName}</p>" +
+                          "<p><strong>Resultado:</strong> ${env.BUILD_RESULT}</p>" +
+                          "<p><strong>Duración:</strong> ${env.BUILD_DURATION}</p>" +
+                          "<p><strong>URL:</strong> <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a></p>" +
+                          "<p><strong>Enlaces de artefactos:</strong></p>" +
+                          "<ul>" +
+                          (env.ARTIFACT_URLS ? env.ARTIFACT_URLS.split(',').collect { "<li><a href='${it}'>${it}</a></li>" }.join('') : '<li>No se encontraron artefactos.</li>') +
+                          "</ul>",
+                    to: "${params.EMAIL_RECIPIENTS}",
+                    attachLog: true,
+                    mimeType: 'text/html'
+                )
             }
         }
     }
