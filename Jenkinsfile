@@ -25,8 +25,8 @@ pipeline {
 
     environment {
         VENV_DIR = '/var/jenkins_home/workspace/Generacion_Actas/venv'
-        ARTIFACT_URLS = ''
-        SCRIPT_EXECUTED = ''
+        ARTIFACT_URLS = 'No disponible'
+        SCRIPT_EXECUTED = 'No disponible'
     }
     stages {
         stage('Clean Up and Checkout ') {
@@ -156,8 +156,6 @@ pipeline {
                 def minutes = (durationSeconds / 60) as int
                 def seconds = durationSeconds % 60
                 env.BUILD_DURATION = "${minutes}m ${seconds}s"
-                env.SCRIPT_EXECUTED = env.SCRIPT_EXECUTED ?: 'No disponible'
-                env.ARTIFACT_URLS = env.ARTIFACT_URLS ?: 'No disponible'
 
                 sh """
                     . ${VENV_DIR}/bin/activate > /dev/null 2>&1
