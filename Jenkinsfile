@@ -78,7 +78,7 @@ pipeline {
                         error "Valor de SCRIPT_NUMBER inválido: ${params.SCRIPT_NUMBER}"
                     }
 
-                    env.SCRIPT_EXECUTED = selectedScripts.join(', ')
+                    env.SCRIPT_EXECUTED = params.SCRIPT_NUMBER
 
                     if (isUnix()) {
                         for (scriptFile in selectedScripts) {
@@ -150,22 +150,19 @@ pipeline {
         always {
             script {
                 env.BUILD_RESULT = currentBuild.currentResult
+                // Convertir la duración a un formato legible
                 def durationMillis = currentBuild.duration
                 def durationSeconds = (durationMillis / 1000) as int
                 def minutes = (durationSeconds / 60) as int
                 def seconds = durationSeconds % 60
                 env.BUILD_DURATION = "${minutes}m ${seconds}s"
-                echo "Resultado del build: ${env.BUILD_RESULT}"
-                echo "Duración del build: ${env.BUILD_DURATION}"
+                env.SCRIPT_EXECUTED = env.SCRIPT_EXECUTED ?: 'No disponible'
+                env.ARTIFACT_URLS = env.ARTIFACT_URLS ?: 'No disponible'
 
-                withEnv([
-                    "ARTIFACT_URLS=${env.ARTIFACT_URLS}",
-                    "SCRIPT_EXECUTED=${env.SCRIPT_EXECUTED}",
-                    "BUILD_RESULT=${env.BUILD_RESULT}",
-                    "BUILD_DURATION=${env.BUILD_DURATION}"
-                ]) {
-                    sh " . ${VENV_DIR}/bin/activate > /dev/null 2>&1 && python send_email.py"
-                }
+                sh """
+                    . ${VENV_DIR}/bin/activate > /dev/null 2>&1
+                    python3 utils/send_email.py ${env.BUILD_RESULT} ${env.BUILD_DURATION} ${env.SMTP_PASSWORD} ${env.DESTINATARIOS} ${env.SCRIPT_EXECUTED} ${env.ARTIFACT_URLS}
+                """
             }
         }
     }
