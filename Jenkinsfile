@@ -21,18 +21,12 @@ pipeline {
             ],
             description: 'Seleccione el script a ejecutar. Use "all" para ejecutar todos los scripts.'
         )
-        string(
-            name: 'EMAIL_RECIPIENTS',
-            defaultValue: 'notificaciones@ine.gob.mx',
-            description: 'Direcciones de correo que recibirán el resultado y artefactos del pipeline'
-        )
     }
 
     environment {
         VENV_DIR = '/var/jenkins_home/workspace/Generacion_Actas/venv'
         ARTIFACT_URLS = ''
-        // Establece la política CSP vacía para permitir que Jenkins muestre correctamente el HTML incrustado 
-        JAVA_OPTS = "-Dhudson.model.DirectoryBrowserSupport.CSP=\"sandbox allow-scripts allow-same-origin; default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval';\""
+        SCRIPT_EXECUTED = ''
     }
     stages {
         stage('Clean Up and Checkout ') {
@@ -83,6 +77,8 @@ pipeline {
                     } else {
                         error "Valor de SCRIPT_NUMBER inválido: ${params.SCRIPT_NUMBER}"
                     }
+
+                    env.SCRIPT_EXECUTED = selectedScripts.join(', ')
 
                     if (isUnix()) {
                         for (scriptFile in selectedScripts) {
@@ -162,20 +158,14 @@ pipeline {
                 echo "Resultado del build: ${env.BUILD_RESULT}"
                 echo "Duración del build: ${env.BUILD_DURATION}"
 
-                emailext(
-                    subject: "${currentBuild.fullDisplayName} - ${env.BUILD_RESULT}",
-                    body: "<p><strong>Pipeline:</strong> ${currentBuild.fullDisplayName}</p>" +
-                          "<p><strong>Resultado:</strong> ${env.BUILD_RESULT}</p>" +
-                          "<p><strong>Duración:</strong> ${env.BUILD_DURATION}</p>" +
-                          "<p><strong>URL:</strong> <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a></p>" +
-                          "<p><strong>Enlaces de artefactos:</strong></p>" +
-                          "<ul>" +
-                          (env.ARTIFACT_URLS ? env.ARTIFACT_URLS.split(',').collect { "<li><a href='${it}'>${it}</a></li>" }.join('') : '<li>No se encontraron artefactos.</li>') +
-                          "</ul>",
-                    to: "${params.EMAIL_RECIPIENTS}",
-                    attachLog: true,
-                    mimeType: 'text/html'
-                )
+                withEnv([
+                    "ARTIFACT_URLS=${env.ARTIFACT_URLS}",
+                    "SCRIPT_EXECUTED=${env.SCRIPT_EXECUTED}",
+                    "BUILD_RESULT=${env.BUILD_RESULT}",
+                    "BUILD_DURATION=${env.BUILD_DURATION}"
+                ]) {
+                    sh " . ${VENV_DIR}/bin/activate > /dev/null 2>&1 && python send_email.py"
+                }
             }
         }
     }
