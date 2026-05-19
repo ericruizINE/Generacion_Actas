@@ -157,10 +157,19 @@ pipeline {
                 def seconds = durationSeconds % 60
                 env.BUILD_DURATION = "${minutes}m ${seconds}s"
 
-                sh """
-                    . ${VENV_DIR}/bin/activate > /dev/null 2>&1
-                    python3 send_email.py ${env.BUILD_RESULT} ${env.BUILD_DURATION} ${env.SMTP_PASSWORD} ${env.DESTINATARIOS} ${env.SCRIPT_EXECUTED} ${env.ARTIFACT_URLS}
-                """
+                withCredentials([
+                    string(credentialsId: 'smtp-user', variable: 'SMTP_USER'),
+                    string(credentialsId: 'smtp-pass', variable: 'SMTP_PASS')
+                ]) {
+                    sh """
+                        . ${VENV_DIR}/bin/activate > /dev/null 2>&1
+                        BUILD_RESULT=${env.BUILD_RESULT} \\
+                        BUILD_DURATION='${env.BUILD_DURATION}' \\
+                        SCRIPT_EXECUTED='${env.SCRIPT_EXECUTED}' \\
+                        ARTIFACT_URLS='${env.ARTIFACT_URLS}' \\
+                        python3 send_email.py
+                    """
+                }
             }
         }
     }

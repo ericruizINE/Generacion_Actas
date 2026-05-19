@@ -1,5 +1,4 @@
 import os
-import sys
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -9,12 +8,12 @@ def enviar_correo():
     # Configuración del servidor SMTP de Gmail
     smtp_host = "correo.ine.mx"
     remitente = "pruebasQA@ine.mx"
-    smtp_user = "dest.qa"  # Reemplaza con tu email
-    smtp_password = os.getenv("SMTP_PASS", "td2BbM4tSbuc")
+    smtp_user = os.getenv('SMTP_USER')
+    smtp_password = os.getenv('SMTP_PASS')
 
     build_name = os.getenv('JOB_NAME', 'Desconocido')
-    build_result = os.getenv('BUILD_RESULT', sys.argv[1] if len(sys.argv) > 1 else 'Desconocido')
-    build_duration = os.getenv('BUILD_DURATION', sys.argv[2] if len(sys.argv) > 2 else 'Desconocido')
+    build_result = os.getenv('BUILD_RESULT', 'Desconocido')
+    build_duration = os.getenv('BUILD_DURATION', 'Desconocido')
     build_number = os.getenv('BUILD_NUMBER', 'Desconocido')
     build_url = os.getenv('BUILD_URL', 'Desconocido')
     blue_ocean_url = f"{os.getenv('JENKINS_URL', '')}blue/organizations/jenkins/{build_name}/detail/{build_name}/{build_number}/pipeline"
@@ -23,8 +22,7 @@ def enviar_correo():
     destinatarios = [email.strip() for email in destinatarios_env.split(',') if email.strip()]
 
     script_executed = os.getenv('SCRIPT_EXECUTED', 'No disponible')
-
-    artifact_urls_raw = os.getenv('ARTIFACT_URLS', '')
+    artifact_urls_raw = os.getenv('ARTIFACT_URLS', 'No disponible')
     artifact_urls = [url.strip() for url in artifact_urls_raw.split(',') if url.strip()]
 
     subject = f"[DEST][CI/CD] Resultado de ejecución de Pipeline: {build_name} Número: {build_number}"
