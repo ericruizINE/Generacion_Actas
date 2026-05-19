@@ -28,8 +28,11 @@ def enviar_correo():
     subject = f"[DEST][CI/CD] Resultado de ejecución de Pipeline: {build_name} Número: {build_number}"
 
     artifact_links_html = '<li>No se encontraron artefactos.</li>'
-    if artifact_urls:
-        artifact_links_html = ''.join([f"<li><a href='{url}'>{url}</a></li>" for url in artifact_urls])
+    if artifact_urls and artifact_urls != ['No disponible']:
+        artifact_links_html = ''.join([
+            f"<li><a href='{url}'>{url.rstrip('/').split('artifact/')[-1]}</a></li>"
+            for url in artifact_urls
+        ])
 
     body = f"""
         <h2 style="color: #2E86C1;">Reporte de Ejecución del Pipeline</h2>

@@ -25,8 +25,6 @@ pipeline {
 
     environment {
         VENV_DIR = '/var/jenkins_home/workspace/Generacion_Actas/venv'
-        ARTIFACT_URLS = 'No disponible'
-        SCRIPT_EXECUTED = 'No disponible'
     }
     stages {
         stage('Clean Up and Checkout ') {
@@ -77,8 +75,6 @@ pipeline {
                     } else {
                         error "Valor de SCRIPT_NUMBER inválido: ${params.SCRIPT_NUMBER}"
                     }
-
-                    env.SCRIPT_EXECUTED = params.SCRIPT_NUMBER
 
                     if (isUnix()) {
                         for (scriptFile in selectedScripts) {
@@ -149,13 +145,38 @@ pipeline {
     post {
         always {
             script {
-                env.BUILD_RESULT = currentBuild.currentResult
-                // Convertir la duración a un formato legible
-                def durationMillis = currentBuild.duration
-                def durationSeconds = (durationMillis / 1000) as int
-                def minutes = (durationSeconds / 60) as int
-                def seconds = durationSeconds % 60
-                env.BUILD_DURATION = "${minutes}m ${seconds}s"
+                def folderMap = [
+                    '1': 'Actas/Presidencia',         '2': 'Actas/Presidencia_especial',
+                    '3': 'Actas/Senadurias',           '4': 'Actas/Senadurias_rp',
+                    '5': 'Actas/Diputaciones',         '6': 'Actas/Diputaciones_rp',
+                    '7': 'Actas/Presidencia_va',       '8': 'Actas/Presidencia_ve',
+                    '9': 'Actas/Presidencia_vpp',      '10': 'Actas/Senadurias_va',
+                    '11': 'Actas/Senadurias_VE',       '12': 'Actas/Diputaciones_va'
+                ]
+                def votosMap = [
+                    '1':  'Archivos/Datos/Presidencia/presidencia_layout_votos.xlsx',
+                    '2':  'Archivos/Datos/Presidencia/presidenciaesp_layout_votos.xlsx',
+                    '3':  'Archivos/Datos/Senadurias/senadurias_layout_votos.xlsx',
+                    '4':  'Archivos/Datos/Senadurias/senaduriasrp_layout_votos.xlsx',
+                    '5':  'Archivos/Datos/Diputaciones/diputaciones_layout_votos.xlsx',
+                    '6':  'Archivos/Datos/Diputaciones/diputacionesrp_layout_votos.xlsx',
+                    '7':  'Archivos/Datos/Presidencia/presidenciava_layout_votos.xlsx',
+                    '8':  'Archivos/Datos/Presidencia/presidenciave_layout_votos.xlsx',
+                    '9':  'Archivos/Datos/Presidencia/presidenciavpp_layout_votos.xlsx',
+                    '10': 'Archivos/Datos/Senadurias/senaduriasva_layout_votos.xlsx',
+                    '11': 'Archivos/Datos/Senadurias/senaduriasve_layout_votos.xlsx',
+                    '12': 'Archivos/Datos/Diputaciones/diputacionesva_layout_votos.xlsx'
+                ]
+
+                def selectionKey = params.SCRIPT_NUMBER == 'all' ? 'all' : params.SCRIPT_NUMBER.split(' - ')[0]
+                def folders = selectionKey == 'all' ? folderMap.values().toList() : [folderMap[selectionKey]]
+                def votos   = selectionKey == 'all' ? votosMap.values().toList()  : [votosMap[selectionKey]]
+
+                def artifactUrls = (folders.collect { "${env.BUILD_URL}artifact/${it}/" } +
+                                    votos.collect   { "${env.BUILD_URL}artifact/${it}"  }).join(',')
+
+                def durationSeconds = (currentBuild.duration / 1000) as int
+                def buildDuration   = "${(durationSeconds / 60) as int}m ${durationSeconds % 60}s"
 
                 withCredentials([
                     string(credentialsId: 'smtp-user', variable: 'SMTP_USER'),
@@ -163,10 +184,10 @@ pipeline {
                 ]) {
                     sh """
                         . ${VENV_DIR}/bin/activate > /dev/null 2>&1
-                        BUILD_RESULT=${env.BUILD_RESULT} \\
-                        BUILD_DURATION='${env.BUILD_DURATION}' \\
-                        SCRIPT_EXECUTED='${env.SCRIPT_EXECUTED}' \\
-                        ARTIFACT_URLS='${env.ARTIFACT_URLS}' \\
+                        BUILD_RESULT=${currentBuild.currentResult} \\
+                        BUILD_DURATION='${buildDuration}' \\
+                        SCRIPT_EXECUTED='${params.SCRIPT_NUMBER}' \\
+                        ARTIFACT_URLS='${artifactUrls}' \\
                         python3 send_email.py
                     """
                 }
