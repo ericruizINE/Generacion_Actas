@@ -161,7 +161,7 @@ pipeline {
 
                 sh """
                     . ${VENV_DIR}/bin/activate > /dev/null 2>&1
-                    python3 utils/send_email.py ${env.BUILD_RESULT} ${env.BUILD_DURATION} ${env.SMTP_PASSWORD} ${env.DESTINATARIOS} ${env.SCRIPT_EXECUTED} ${env.ARTIFACT_URLS}
+                    python3 send_email.py ${env.BUILD_RESULT} ${env.BUILD_DURATION} ${env.SMTP_PASSWORD} ${env.DESTINATARIOS} ${env.SCRIPT_EXECUTED} ${env.ARTIFACT_URLS}
                 """
             }
         }
