@@ -188,7 +188,7 @@ pipeline {
                         BUILD_DURATION='${buildDuration}' \\
                         SCRIPT_EXECUTED='${params.SCRIPT_NUMBER}' \\
                         ARTIFACT_URLS='${artifactUrls}' \\
-                        python3 send_email.py
+                        python3 /var/jenkins_home/workspace/Utilidades/send_email_actas.py
                     """
                 }
             }
